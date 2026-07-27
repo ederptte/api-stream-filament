@@ -8,9 +8,12 @@ use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Resources\Ventas\VentaResource;
 use App\Models\Compra;
 use App\Models\PerfilCuenta;
+use App\Models\Venta;
 use Filament\Actions\EditAction;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -68,7 +71,7 @@ class ViewVentas extends ViewRecord
                 ->label('Cambiar perfil')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->color('warning')
-                ->visible(fn () => $this->record->estado !== 'cancelada')
+                ->visible(fn () => $this->record->estado === 'activa')
                 ->schema([
                     Select::make('plataforma_nueva')
                         ->label('Plataforma')
@@ -149,13 +152,54 @@ class ViewVentas extends ViewRecord
                     $this->fillForm();
                 }),
 
+            Action::make('renovarVenta')
+                ->label('Renovar')
+                ->icon(Heroicon::OutlinedArrowPathRoundedSquare)
+                ->color('success')
+                ->visible(fn () => $this->record->estado === 'activa')
+                ->schema([
+                    TextInput::make('precio_venta')
+                        ->label('Precio de la renovación')
+                        ->required()
+                        ->numeric()
+                        ->default(fn () => $this->record->precio_venta),
+
+                    DatePicker::make('fecha_venta')
+                        ->label('Fecha de pago')
+                        ->required()
+                        ->default(now()),
+                ])
+                ->action(function (array $data) {
+                    $ventaVieja = $this->record;
+
+                    $nuevaVenta = DB::transaction(function () use ($ventaVieja, $data) {
+                        $nueva = Venta::create([
+                            'cliente_id' => $ventaVieja->cliente_id,
+                            'perfil_cuenta_id' => $ventaVieja->perfil_cuenta_id,
+                            'precio_venta' => $data['precio_venta'],
+                            'fecha_venta' => $data['fecha_venta'],
+                        ]);
+
+                        $ventaVieja->update(['estado' => 'renovada']);
+
+                        return $nueva;
+                    });
+
+                    Notification::make()
+                        ->title('Servicio renovado con éxito')
+                        ->success()
+                        ->send();
+
+                    $this->redirect(VentaResource::getUrl('view', ['record' => $nuevaVenta->id]));
+                }),
+
             Action::make('cancelarVenta')
                 ->label('Cancelar venta')
                 ->icon(Heroicon::OutlinedXCircle)
                 ->color('danger')
                 ->requiresConfirmation()
                 ->modalDescription('Esto cancelará la venta y liberará el perfil para poder venderlo de nuevo. El historial se conserva.')
-                ->visible(fn () => $this->record->estado !== 'cancelada')
+                ->visible(fn () => $this->record->estado === 'activa')
                 ->action(function () {
                     $this->record->update(['estado' => 'cancelada']);
                     $this->record->perfilCuenta?->update(['estado' => 'disponible']);

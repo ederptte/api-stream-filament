@@ -51,19 +51,21 @@ class VentasTable
                     ->color(fn (string $state): string => match ($state) {
                         'activa' => 'success',
                         'cancelada' => 'danger',
+                        'renovada' => 'info',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'activa' => 'Activa',
                         'cancelada' => 'Cancelada',
+                        'renovada' => 'Renovada',
                         default => $state,
                     }),
 
                 TextColumn::make('estado_vencimiento')
                     ->label('Vencimiento')
                     ->getStateUsing(function ($record) {
-                        if ($record->estado === 'cancelada') {
-                            return 'cancelada';
+                        if ($record->estado !== 'activa') {
+                            return $record->estado;
                         }
 
                         if (!$record->fecha_vencimiento) {
@@ -88,14 +90,14 @@ class VentasTable
                         'activo' => 'success',
                         'por_vencer' => 'warning',
                         'vencido' => 'danger',
-                        'cancelada' => 'gray',
+                        'cancelada', 'renovada' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'activo' => 'Activo',
                         'por_vencer' => 'Por vencer',
                         'vencido' => 'Vencido',
-                        'cancelada' => '—',
+                        'cancelada', 'renovada' => '—',
                         default => 'Sin fecha',
                     })
                     ->sortable(query: fn ($query, string $direction) => $query->orderBy('fecha_vencimiento', $direction)),
@@ -120,6 +122,7 @@ class VentasTable
                     ->options([
                         'activa' => 'Activa',
                         'cancelada' => 'Cancelada',
+                        'renovada' => 'Renovada',
                     ]),
             ])
             ->recordActions([

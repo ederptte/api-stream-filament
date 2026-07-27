@@ -33,9 +33,29 @@ class VentaInfolist
                     ->label('Vence')
                     ->date(),
 
+                TextEntry::make('estado')
+                    ->label('Estado de la venta')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'activa' => 'success',
+                        'cancelada' => 'danger',
+                        'renovada' => 'info',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'activa' => 'Activa',
+                        'cancelada' => 'Cancelada',
+                        'renovada' => 'Renovada',
+                        default => $state,
+                    }),
+
                 TextEntry::make('estado_vencimiento')
-                    ->label('Estado')
+                    ->label('Vencimiento')
                     ->getStateUsing(function ($record) {
+                        if ($record->estado !== 'activa') {
+                            return $record->estado; // cancelada / renovada
+                        }
+
                         if (!$record->fecha_vencimiento) {
                             return 'sin fecha';
                         }
@@ -58,15 +78,16 @@ class VentaInfolist
                         'activo' => 'success',
                         'por_vencer' => 'warning',
                         'vencido' => 'danger',
+                        'cancelada', 'renovada' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'activo' => 'Activo',
                         'por_vencer' => 'Por vencer',
                         'vencido' => 'Vencido',
+                        'cancelada', 'renovada' => '—',
                         default => 'Sin fecha',
                     }),
-                    
             ]);
     }
 }
