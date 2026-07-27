@@ -61,7 +61,7 @@ class VentaForm
                     ->dehydrated(true) // 👈 clave: sin esto, compra_id no se guarda al enviar el form
                     ->live()
                     ->afterStateUpdated(fn (Set $set) => $set('perfil_cuenta_id', null))
-                    ->options(function (Get $get) {
+                    ->options(function (Get $get,  $record) {
                         $plataforma = $get('plataforma_seleccionada');
                         if (!$plataforma) return [];
 
@@ -69,9 +69,18 @@ class VentaForm
                             ->whereHas('cuenta', function (Builder $q) use ($plataforma) {
                                 $q->where('plataforma', mb_strtoupper($plataforma, 'UTF-8'));
                             })
-                            ->where('estado', 'activa')
-                            ->whereHas('perfilCuentas', function (Builder $subQ) {
-                                $subQ->where('estado', 'disponible');
+                            ->where(function (Builder $q) use ($record) {
+                                $q->where(function (Builder $activa) {
+                                    $activa->where('estado', 'activa')
+                                        ->whereHas('perfilCuentas', function (Builder $subQ) {
+                                            $subQ->where('estado', 'disponible');
+                                        });
+                                });
+
+                                // Incluye también la compra ya asignada a esta venta, aunque ya no tenga perfiles disponibles
+                                if ($record?->perfilCuenta) {
+                                    $q->orWhere('id', $record->perfilCuenta->compra_id);
+                                }
                             })
                             ->get()
                             ->mapWithKeys(fn ($compra) => [$compra->id => $compra->cuenta?->correo ?? "Compra N° {$compra->id}"])
@@ -93,13 +102,19 @@ class VentaForm
                         $perfil = $state ? PerfilCuenta::find($state) : null;
                         $set('pin', $perfil?->pin);
                     })
-                    ->options(function (Get $get) {
+                    ->options(function (Get $get, $record) {
                         $compraId = $get('compra_id');
                         if (!$compraId) return [];
 
                         return PerfilCuenta::query()
                             ->where('compra_id', $compraId)
-                            ->where('estado', 'disponible')
+                            ->where(function ($q) use ($record) {
+                                $q->where('estado', 'disponible');
+
+                                if ($record) {
+                                    $q->orWhere('id', $record->perfil_cuenta_id);
+                                }
+                            })
                             ->get()
                             ->mapWithKeys(fn ($perfil) => [$perfil->id => $perfil->nombre_perfil])
                             ->toArray();
