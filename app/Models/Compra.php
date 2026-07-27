@@ -17,7 +17,7 @@ class Compra extends Model
         'cuenta_id',
         'precio_compra',
         'fecha_compra',
-        'perfiles',
+        'pantallas',
         'nota',
         'estado',
         'dias_duracion',

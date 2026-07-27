@@ -29,7 +29,7 @@ class CompraForm
                     ->numeric(),
                 DatePicker::make('fecha_compra')
                     ->required(),
-                TextInput::make('perfiles')
+                TextInput::make('pantallas')
                     ->required()
                     ->numeric()
                     ->integer()

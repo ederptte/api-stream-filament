@@ -25,7 +25,7 @@ class StoreCompraRequest extends FormRequest
             'cuenta_id'      => ['required', 'exists:cuentas,id'], // Verifica que el id ingresado exista de verdad en cuentas
             'precio_compra'  => ['required', 'numeric', 'min:0'],
             'fecha_compra'   => ['required', 'date'],
-            'perfiles'      => ['required', 'integer', 'min:1'],
+            'pantallas'      => ['required', 'integer', 'min:1'],
             'dias_duracion'  => ['required', 'integer', 'min:8'],
             'nota'           => ['nullable', 'string'],
         ];

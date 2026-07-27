@@ -21,8 +21,8 @@ class CompraInfolist
                     ->label('Precio Compra'),
                 TextEntry::make('fecha_compra')
                     ->label('Fecha de Compra'),
-                TextEntry::make('perfiles')
-                    ->label('Perfiles'),
+                TextEntry::make('pantallas')
+                    ->label('Pantallas'),
                 TextEntry::make('perfiles_vendidos')
                     ->label('Perfiles Vendidos')
                     ->getStateUsing(fn ($record) => $record->perfilCuentas()->where('estado', 'vendido')->count())

@@ -128,7 +128,7 @@ class CompraController extends Controller
                 'cuenta_id'     => $compra->cuenta_id,
                 'precio_compra' => $datosValidados['precio_compra'],
                 'fecha_compra'  => $datosValidados['fecha_compra'],
-                'perfiles'     => $perfilesVendidos->count(),
+                'pantallas'     => $perfilesVendidos->count(),
                 'nota'          => $datosValidados['nota'] ?? "Renovación de compra #{$compra->id}",
                 'estado'        => 'activa',
             ]);

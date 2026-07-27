@@ -46,7 +46,7 @@ class ComprasTable
                     ->color('info'),
                 TextColumn::make('perfiles_disponibles')
                     ->label('Disponibles')
-                    ->getStateUsing(fn ($record) => $record->perfiles - $record->perfiles_vendidos)
+                    ->getStateUsing(fn ($record) => $record->pantallas - $record->perfiles_vendidos)
                     ->badge()
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger'),
                 
