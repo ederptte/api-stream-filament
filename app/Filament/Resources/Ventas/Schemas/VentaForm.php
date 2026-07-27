@@ -38,7 +38,7 @@ class VentaForm
                     ->options([
                         'netflix' => 'Netflix',
                         'prime video' => 'Prime Video',
-                        'disney_plus' => 'Disney+',
+                        'disney plus' => 'Disney plus',
                         'spotify' => 'Spotify',
                         'hbo_max' => 'Max (HBO)',
                     ])
