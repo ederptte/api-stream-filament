@@ -13,6 +13,16 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+# 👇 Agrega esto: permite el acceso al DocumentRoot
+RUN { \
+    echo '<Directory /var/www/html/public>'; \
+    echo '    Options Indexes FollowSymLinks'; \
+    echo '    AllowOverride All'; \
+    echo '    Require all granted'; \
+    echo '</Directory>'; \
+} > /etc/apache2/conf-available/laravel-public.conf \
+    && a2enconf laravel-public
+
 COPY . /var/www/html
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
