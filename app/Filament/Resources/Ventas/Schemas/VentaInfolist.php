@@ -11,6 +11,8 @@ class VentaInfolist
     {
         return $schema
             ->components([
+                TextEntry::make('id')
+                    ->label('ID'),
                 TextEntry::make('cliente.nombre')
                     ->label('Cliente'),
                 TextEntry::make('perfilCuenta.compra.cuenta.plataforma')
