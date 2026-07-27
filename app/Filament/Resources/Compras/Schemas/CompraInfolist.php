@@ -30,7 +30,7 @@ class CompraInfolist
                     ->color('info'),
                 TextEntry::make('perfiles_disponibles')
                     ->label('Perfiles Disponibles')
-                    ->getStateUsing(fn ($record) => $record->perfiles - $record->perfiles_vendidos)
+                    ->getStateUsing(fn ($record) => $record->pantallas - $record->perfiles_vendidos)
                     ->badge()
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger'),
                 TextEntry::make('fecha_vencimiento')
