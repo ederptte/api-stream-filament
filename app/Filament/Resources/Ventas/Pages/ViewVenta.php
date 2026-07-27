@@ -6,11 +6,14 @@ use App\Filament\Resources\Clientes\ClienteResource;
 use App\Filament\Resources\Compras\CompraResource;
 use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Filament\Resources\Ventas\VentaResource;
+use App\Models\Compra;
 use App\Models\PerfilCuenta;
 use Filament\Actions\EditAction;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Support\Htmlable;
@@ -67,12 +70,47 @@ class ViewVentas extends ViewRecord
                 ->color('warning')
                 ->visible(fn () => $this->record->estado !== 'cancelada')
                 ->schema([
-                    Select::make('perfil_nuevo_id')
-                        ->label('Nuevo perfil')
+                    Select::make('plataforma_nueva')
+                        ->label('Plataforma')
                         ->native(false)
                         ->required()
-                        ->options(function () {
-                            $compraId = $this->record->perfilCuenta?->compra_id;
+                        ->live()
+                        ->options([
+                            'netflix' => 'Netflix',
+                            'prime video' => 'Prime Video',
+                            'disney_plus' => 'Disney+',
+                            'spotify' => 'Spotify',
+                            'hbo_max' => 'Max (HBO)',
+                        ])
+                        ->afterStateUpdated(fn (Set $set) => $set('compra_nueva_id', null)),
+
+                    Select::make('compra_nueva_id')
+                        ->label('Correo de la cuenta')
+                        ->native(false)
+                        ->required()
+                        ->live()
+                        ->disabled(fn (Get $get) => !$get('plataforma_nueva'))
+                        ->afterStateUpdated(fn (Set $set) => $set('perfil_nuevo_id', null))
+                        ->options(function (Get $get) {
+                            $plataforma = $get('plataforma_nueva');
+                            if (!$plataforma) return [];
+
+                            return Compra::query()
+                                ->whereHas('cuenta', fn ($q) => $q->where('plataforma', mb_strtoupper($plataforma, 'UTF-8')))
+                                ->where('estado', 'activa')
+                                ->whereHas('perfilCuentas', fn ($q) => $q->where('estado', 'disponible'))
+                                ->get()
+                                ->mapWithKeys(fn ($compra) => [$compra->id => $compra->cuenta?->correo ?? "Compra N° {$compra->id}"])
+                                ->toArray();
+                        }),
+
+                    Select::make('perfil_nuevo_id')
+                        ->label('Perfil disponible')
+                        ->native(false)
+                        ->required()
+                        ->disabled(fn (Get $get) => !$get('compra_nueva_id'))
+                        ->options(function (Get $get) {
+                            $compraId = $get('compra_nueva_id');
                             if (!$compraId) return [];
 
                             return PerfilCuenta::query()
@@ -82,8 +120,9 @@ class ViewVentas extends ViewRecord
                                 ->mapWithKeys(fn ($perfil) => [$perfil->id => $perfil->nombre_perfil])
                                 ->toArray();
                         }),
+
                     Select::make('estado_perfil_viejo')
-                        ->label('¿Qué hacer con el perfil actual?')
+                        ->label('¿Qué hacer con el perfil/cuenta actual?')
                         ->native(false)
                         ->required()
                         ->default('mantenimiento')
@@ -107,7 +146,7 @@ class ViewVentas extends ViewRecord
                         ->success()
                         ->send();
 
-                    $this->fillForm(); // refresca la vista con el nuevo perfil
+                    $this->fillForm();
                 }),
 
             Action::make('cancelarVenta')
