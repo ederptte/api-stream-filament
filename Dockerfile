@@ -2,10 +2,11 @@ FROM php:8.3-apache
 
 RUN apt-get update && apt-get install -y \
     libpq-dev \
+    libicu-dev \
     zip \
     unzip \
     git \
-    && docker-php-ext-install pdo pdo_pgsql
+    && docker-php-ext-install pdo pdo_pgsql intl
 
 RUN a2enmod rewrite
 
@@ -13,7 +14,6 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# 👇 Agrega esto: permite el acceso al DocumentRoot
 RUN { \
     echo '<Directory /var/www/html/public>'; \
     echo '    Options Indexes FollowSymLinks'; \
