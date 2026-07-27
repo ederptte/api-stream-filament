@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('dias_duracion')->default(30);
             $table->date('fecha_vencimiento')->nullable();
             $table->text('nota')->nullable();
-            $table->string('estado')->default('activa');
+            $table->string('estado')->default('Activa');
             $table->softDeletes();
             $table->timestamps();
         });

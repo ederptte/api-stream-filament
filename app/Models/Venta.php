@@ -18,6 +18,7 @@ class Venta extends Model
         'fecha_venta',
         'fecha_vencimiento',
         'pin',
+        'estado',
     ];
 
     protected $casts = [

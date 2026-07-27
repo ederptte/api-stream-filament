@@ -9,6 +9,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -20,19 +21,19 @@ class VentasTable
             ->columns([
                 TextColumn::make('cliente.nombre')
                     ->label('Cliente')
-                    ->searchable() 
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('perfilCuenta.compra.cuenta.plataforma')
                     ->label('Plataforma')
-                    ->searchable() 
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('perfilCuenta.nombre_perfil')
                     ->label('Perfil')
-                    ->searchable() 
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('perfilCuenta.pin')
                     ->label('Pin')
-                    ->searchable() 
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('precio_venta')
                     ->numeric()
@@ -44,9 +45,27 @@ class VentasTable
                     ->date()
                     ->sortable(),
 
+                TextColumn::make('estado')
+                    ->label('Estado venta')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'activa' => 'success',
+                        'cancelada' => 'danger',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'activa' => 'Activa',
+                        'cancelada' => 'Cancelada',
+                        default => $state,
+                    }),
+
                 TextColumn::make('estado_vencimiento')
-                    ->label('Estado')
+                    ->label('Vencimiento')
                     ->getStateUsing(function ($record) {
+                        if ($record->estado === 'cancelada') {
+                            return 'cancelada';
+                        }
+
                         if (!$record->fecha_vencimiento) {
                             return 'sin fecha';
                         }
@@ -69,15 +88,18 @@ class VentasTable
                         'activo' => 'success',
                         'por_vencer' => 'warning',
                         'vencido' => 'danger',
+                        'cancelada' => 'gray',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'activo' => 'Activo',
                         'por_vencer' => 'Por vencer',
                         'vencido' => 'Vencido',
+                        'cancelada' => '—',
                         default => 'Sin fecha',
                     })
                     ->sortable(query: fn ($query, string $direction) => $query->orderBy('fecha_vencimiento', $direction)),
+
                 TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
@@ -93,10 +115,16 @@ class VentasTable
             ])
             ->filters([
                 TrashedFilter::make(),
+                SelectFilter::make('estado')
+                    ->label('Estado')
+                    ->options([
+                        'activa' => 'Activa',
+                        'cancelada' => 'Cancelada',
+                    ]),
             ])
             ->recordActions([
                 ViewAction::make()
-                ->label('Ver'),
+                    ->label('Ver'),
                 EditAction::make(),
             ])
             ->toolbarActions([
