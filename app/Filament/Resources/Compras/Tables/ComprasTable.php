@@ -63,7 +63,8 @@ class ComprasTable
                         'disponible', 'activa' => 'success', // Color Verde
                         'vendido', 'ocupado' => 'info',     // Color Azul
                         'mantenimiento' => 'warning',        // Color Amarillo / Naranja
-                        'inactivo', 'vencido' => 'danger',   // Color Rojo
+                        'inactivo', 'vencido' => 'danger',
+                        'renovada' => 'info', // 👈 nuevo   // Color Rojo
                         default => 'gray',                   // Color Gris por defecto
                     }),
                 TextColumn::make('deleted_at')

@@ -44,7 +44,8 @@ class CompraInfolist
                         'Disponible', 'activa' => 'success', // Color Verde
                         'vendido', 'ocupado' => 'info',     // Color Azul
                         'mantenimiento' => 'warning',        // Color Amarillo / Naranja
-                        'inactivo', 'vencido' => 'danger',   // Color Rojo
+                        'inactivo', 'vencido' => 'danger',
+                        'renovada' => 'info', // 👈 nuevo   // Color Rojo
                         default => 'gray',                   // Color Gris por defecto
                     }),
                     
