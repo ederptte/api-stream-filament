@@ -13,6 +13,8 @@ class CompraInfolist
         return $schema
             
             ->components([
+                TextEntry::make('id')
+                    ->label('ID'),
                 TextEntry::make('cuenta.plataforma')
                     ->label('Plataforma'),
                 TextEntry::make('cuenta.correo')
