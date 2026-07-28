@@ -27,11 +27,16 @@ class CompraInfolist
                     ->label('Pantallas'),
                 TextEntry::make('perfiles_vendidos')
                     ->label('Perfiles Vendidos')
+                    ->getStateUsing(fn ($record) => $record->perfilCuentas()->where('estado', 'vendido')->count())
                     ->badge()
                     ->color('info'),
+
                 TextEntry::make('perfiles_disponibles')
                     ->label('Perfiles Disponibles')
-                    ->getStateUsing(fn ($record) => $record->pantallas - $record->perfiles_vendidos)
+                    ->getStateUsing(function ($record) {
+                        $vendidos = $record->perfilCuentas()->where('estado', 'vendido')->count();
+                        return $record->pantallas - $vendidos;
+                    })
                     ->badge()
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger'),
                 TextEntry::make('fecha_vencimiento')
