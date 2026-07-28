@@ -27,7 +27,6 @@ class CompraInfolist
                     ->label('Pantallas'),
                 TextEntry::make('perfiles_vendidos')
                     ->label('Perfiles Vendidos')
-                    ->getStateUsing(fn ($record) => $record->perfilCuentas()->where('estado', 'vendido')->count())
                     ->badge()
                     ->color('info'),
                 TextEntry::make('perfiles_disponibles')
