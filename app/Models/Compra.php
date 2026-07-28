@@ -53,7 +53,7 @@ class Compra extends Model
         });
 
         static::created(function ($compra) {
-            for ($i = 1; $i <= $compra->perfiles; $i++) {
+            for ($i = 1; $i <= $compra->pantallas; $i++) {
                 PerfilCuenta::create([
                     'compra_id' => $compra->id,
                     'nombre_perfil' => "Perfil {$i}",
@@ -68,10 +68,10 @@ class Compra extends Model
     public function getPantallasDisponiblesAttribute()
     {
         if (array_key_exists('perfiles_vendidos', $this->attributes)) {
-            return $this->perfiles - ($this->attributes['perfiles_vendidos'] ?? 0);
+            return $this->pantallas - ($this->attributes['perfiles_vendidos'] ?? 0);
         }
 
-        return $this->perfiles - $this->ventas()->count();
+        return $this->pantallas - $this->ventas()->count();
     }
 
     /**
