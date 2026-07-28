@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Compras\Pages;
 
 use App\Filament\Resources\Compras\CompraResource;
 use App\Models\Compra;
+use App\Models\PerfilCuenta;
 use Filament\Actions\EditAction;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -48,6 +49,15 @@ class ViewCompra extends ViewRecord
                         ->minValue(1)
                         ->default(30),
 
+                    TextInput::make('pantallas')
+                        ->label('Total de pantallas')
+                        ->helperText('Incluye las que ya están vendidas. Ej: si tenías 7 y quieres seguir vendiendo, deja 7.')
+                        ->required()
+                        ->numeric()
+                        ->integer()
+                        ->minValue(fn () => $this->record->perfilCuentas()->where('estado', 'vendido')->count())
+                        ->default(fn () => $this->record->pantallas),
+
                     Textarea::make('nota')
                         ->label('Nota')
                         ->default(fn () => "Renovación de compra #{$this->record->id}")
@@ -63,17 +73,31 @@ class ViewCompra extends ViewRecord
                             'cuenta_id' => $compraVieja->cuenta_id,
                             'precio_compra' => $data['precio_compra'],
                             'fecha_compra' => $data['fecha_compra'],
-                            'dias_duracion' => $data['dias_duracion'], // 👈 esto activa el cálculo automático de fecha_vencimiento
-                            'pantallas' => $perfilesVendidos->count(),
+                            'dias_duracion' => $data['dias_duracion'],
+                            'pantallas' => $data['pantallas'],
                             'nota' => $data['nota'],
                             'estado' => 'activa',
                         ]);
 
+                        // Mueve los perfiles vendidos a la nueva compra, sin tocar su estado ni fecha_vencimiento
                         $compraVieja->perfilCuentas()
                             ->where('estado', 'vendido')
                             ->update(['compra_id' => $nueva->id]);
 
+                        // Los perfiles que quedaron sin vender en la compra vieja ya no aplican
                         $compraVieja->perfilCuentas()->where('estado', 'disponible')->delete();
+
+                        // Genera el cupo nuevo disponible: total - los que ya se movieron vendidos
+                        $faltantes = $data['pantallas'] - $perfilesVendidos->count();
+                        for ($i = 1; $i <= $faltantes; $i++) {
+                            PerfilCuenta::create([
+                                'compra_id' => $nueva->id,
+                                'nombre_perfil' => "Perfil " . ($perfilesVendidos->count() + $i),
+                                'pin' => '',
+                                'dispositivo_autorizado' => '',
+                                'estado' => 'disponible',
+                            ]);
+                        }
 
                         $compraVieja->update(['estado' => 'renovada']);
 
