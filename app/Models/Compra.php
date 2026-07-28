@@ -44,6 +44,14 @@ class Compra extends Model
             }
         });
 
+        static::updating(function ($compra) {
+            if ($compra->isDirty(['fecha_compra', 'dias_duracion']) && $compra->fecha_compra && $compra->dias_duracion) {
+                $compra->fecha_vencimiento = Carbon::parse($compra->fecha_compra)
+                    ->addDays($compra->dias_duracion)
+                    ->format('Y-m-d');
+            }
+        });
+
         static::created(function ($compra) {
             for ($i = 1; $i <= $compra->perfiles; $i++) {
                 PerfilCuenta::create([
