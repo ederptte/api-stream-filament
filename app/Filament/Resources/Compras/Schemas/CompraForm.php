@@ -35,8 +35,9 @@ class CompraForm
                     ->integer()
                     ->minValue(1)
                     ->default(1),
-                Select::make('dias_duracion')
+                TextInput::make('dias_duracion')
                     ->required()
+                    ->numeric()
                     ->integer()
                     ->minValue(1)
                     ->default(30),
