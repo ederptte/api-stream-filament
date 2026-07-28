@@ -41,6 +41,13 @@ class ViewCompra extends ViewRecord
                         ->required()
                         ->default(now()),
 
+                    TextInput::make('dias_duracion')
+                        ->required()
+                        ->numeric()
+                        ->integer()
+                        ->minValue(1)
+                        ->default(30),
+
                     Textarea::make('nota')
                         ->label('Nota')
                         ->default(fn () => "Renovación de compra #{$this->record->id}")
@@ -56,17 +63,16 @@ class ViewCompra extends ViewRecord
                             'cuenta_id' => $compraVieja->cuenta_id,
                             'precio_compra' => $data['precio_compra'],
                             'fecha_compra' => $data['fecha_compra'],
+                            'dias_duracion' => $data['dias_duracion'], // 👈 esto activa el cálculo automático de fecha_vencimiento
                             'pantallas' => $perfilesVendidos->count(),
                             'nota' => $data['nota'],
                             'estado' => 'activa',
                         ]);
 
-                        // Mueve los perfiles vendidos a la nueva compra, sin tocar su estado ni fecha_vencimiento
                         $compraVieja->perfilCuentas()
                             ->where('estado', 'vendido')
                             ->update(['compra_id' => $nueva->id]);
 
-                        // Los perfiles que quedaron sin vender ya no aplican
                         $compraVieja->perfilCuentas()->where('estado', 'disponible')->delete();
 
                         $compraVieja->update(['estado' => 'renovada']);
