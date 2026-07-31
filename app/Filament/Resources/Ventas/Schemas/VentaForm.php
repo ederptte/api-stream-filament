@@ -124,7 +124,7 @@ class VentaForm
                     ->label('PIN del perfil')
                     ->placeholder('Ej: 1234')
                     ->required()
-                    ->maxLength(4)
+                    ->maxLength(5)
                     ->dehydrated(true),
 
                 TextInput::make('precio_venta')
