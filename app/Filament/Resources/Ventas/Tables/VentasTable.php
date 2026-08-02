@@ -27,6 +27,10 @@ class VentasTable
                     ->label('Plataforma')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('perfilCuenta.compra.cuenta.correo')
+                    ->label('Correo')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('perfilCuenta.nombre_perfil')
                     ->label('Perfil')
                     ->searchable()
