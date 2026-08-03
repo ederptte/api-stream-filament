@@ -53,19 +53,16 @@ class ComprasTable
                 TextColumn::make('fecha_vencimiento')
                     ->date()
                     ->sortable(),
-                TextColumn::make('estado')
+                TextColumn::make('estado_actual')
                     ->label('Estado')
-                    ->searchable()
-                    // 1. Convierte la columna en un Badge estilizado
-                    ->badge() 
-                    // 2. Define qué color toma la etiqueta según el valor en la base de datos
+                    ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'disponible', 'activa' => 'success', // Color Verde
-                        'vendido', 'ocupado' => 'info',     // Color Azul
-                        'mantenimiento' => 'warning',        // Color Amarillo / Naranja
-                        'inactivo', 'vencido' => 'danger',
-                        'renovada' => 'info', // 👈 nuevo   // Color Rojo
-                        default => 'gray',                   // Color Gris por defecto
+                        'disponible', 'activa' => 'success',
+                        'vendido', 'ocupado' => 'info',
+                        'mantenimiento' => 'warning',
+                        'inactivo', 'vencida', 'vencido' => 'danger',
+                        'renovada' => 'info',
+                        default => 'gray',
                     }),
                 TextColumn::make('deleted_at')
                     ->dateTime()

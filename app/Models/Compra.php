@@ -74,6 +74,20 @@ class Compra extends Model
         return $this->pantallas - $this->ventas()->count();
     }
 
+    public function getEstadoActualAttribute()
+    {
+        // Si ya está cancelada o renovada, ese estado manda (no se sobreescribe por fecha)
+        if (in_array($this->estado, ['cancelada', 'renovada'])) {
+            return $this->estado;
+        }
+
+        if ($this->fecha_vencimiento && $this->fecha_vencimiento->isPast()) {
+            return 'vencida';
+        }
+
+        return $this->estado;
+    }
+
     /**
      * Fecha de vencimiento más próxima entre los perfiles vendidos de esta compra.
      * (Vencimiento a nivel de cada cliente/venta, distinto del vencimiento de la cuenta misma)
