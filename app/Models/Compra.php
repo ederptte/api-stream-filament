@@ -13,6 +13,10 @@ class Compra extends Model
 
     protected $table = 'compras';
 
+    // 👇 Bandera para saltar la auto-creación de perfiles (usada al renovar,
+    // donde el código de la Action ya genera los perfiles manualmente)
+    public static bool $skipPerfilesAutoCreate = false;
+
     protected $fillable = [
         'cuenta_id',
         'precio_compra',
@@ -33,7 +37,6 @@ class Compra extends Model
      * Calcula automáticamente fecha_vencimiento = fecha_compra + dias_duracion,
      * solo si no viene ya definida manualmente.
      */
-
     protected static function booted()
     {
         static::creating(function ($compra) {
@@ -53,6 +56,10 @@ class Compra extends Model
         });
 
         static::created(function ($compra) {
+            if (static::$skipPerfilesAutoCreate) {
+                return; // 👈 evita perfiles fantasma al renovar
+            }
+
             for ($i = 1; $i <= $compra->pantallas; $i++) {
                 PerfilCuenta::create([
                     'compra_id' => $compra->id,
@@ -62,8 +69,8 @@ class Compra extends Model
                     'estado' => 'disponible',
                 ]);
             }
-    });
-}
+        });
+    }
 
     public function getPantallasDisponiblesAttribute()
     {
@@ -76,7 +83,6 @@ class Compra extends Model
 
     public function getEstadoActualAttribute()
     {
-        // Si ya está cancelada o renovada, ese estado manda (no se sobreescribe por fecha)
         if (in_array($this->estado, ['cancelada', 'renovada'])) {
             return $this->estado;
         }
@@ -88,10 +94,6 @@ class Compra extends Model
         return $this->estado;
     }
 
-    /**
-     * Fecha de vencimiento más próxima entre los perfiles vendidos de esta compra.
-     * (Vencimiento a nivel de cada cliente/venta, distinto del vencimiento de la cuenta misma)
-     */
     public function getProximoVencimientoAttribute()
     {
         return $this->perfilCuentas()

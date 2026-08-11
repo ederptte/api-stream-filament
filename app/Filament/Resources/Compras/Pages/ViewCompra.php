@@ -69,15 +69,22 @@ class ViewCompra extends ViewRecord
                     $nuevaCompra = DB::transaction(function () use ($compraVieja, $data) {
                         $perfilesVendidos = $compraVieja->perfilCuentas()->where('estado', 'vendido')->get();
 
-                        $nueva = Compra::create([
-                            'cuenta_id' => $compraVieja->cuenta_id,
-                            'precio_compra' => $data['precio_compra'],
-                            'fecha_compra' => $data['fecha_compra'],
-                            'dias_duracion' => $data['dias_duracion'],
-                            'pantallas' => $data['pantallas'],
-                            'nota' => $data['nota'],
-                            'estado' => 'activa',
-                        ]);
+                        // 👇 Evita que el observer de Compra genere perfiles automáticamente aquí,
+                        // porque el código de abajo ya se encarga de crear exactamente los que faltan
+                        Compra::$skipPerfilesAutoCreate = true;
+                        try {
+                            $nueva = Compra::create([
+                                'cuenta_id' => $compraVieja->cuenta_id,
+                                'precio_compra' => $data['precio_compra'],
+                                'fecha_compra' => $data['fecha_compra'],
+                                'dias_duracion' => $data['dias_duracion'],
+                                'pantallas' => $data['pantallas'],
+                                'nota' => $data['nota'],
+                                'estado' => 'activa',
+                            ]);
+                        } finally {
+                            Compra::$skipPerfilesAutoCreate = false;
+                        }
 
                         // Mueve los perfiles vendidos a la nueva compra, sin tocar su estado ni fecha_vencimiento
                         $compraVieja->perfilCuentas()
