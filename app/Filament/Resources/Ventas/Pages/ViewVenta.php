@@ -54,6 +54,22 @@ class ViewVentas extends ViewRecord
                     return "https://wa.me/57{$whatsapp}?text=" . urlencode($mensaje);
                 })
                 ->openUrlInNewTab(),
+            
+            Action::make('enviarVencimiento')
+                ->label('Enviar Vencimiento')
+                ->color('success')
+                ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                ->url(function () {
+                    $venta = $this->record;
+                    $perfil = $venta->perfilCuenta;
+                    $cuenta = $perfil?->compra?->cuenta;
+
+                    $mensaje = "Hola {$venta->cliente->nombre}, tu pantalla de {$cuenta?->plataforma} vence $venta->fecha_vencimiento?->format('d/m/Y')";
+                    $whatsapp = $venta->cliente->whatsapp;
+
+                    return "https://wa.me/57{$whatsapp}?text=" . urlencode($mensaje);
+                })
+                ->openUrlInNewTab(),
 
             Action::make('verCliente')
                 ->label('Ver cliente')
