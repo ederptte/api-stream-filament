@@ -11,7 +11,9 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class VentasTable
 {
@@ -128,6 +130,10 @@ class VentasTable
                         'cancelada' => 'Cancelada',
                         'renovada' => 'Renovada',
                     ]),
+                Filter::make('ocultar_renovadas')
+                    ->label('Ocultar renovadas')
+                    ->default()
+                    ->query(fn (Builder $query) => $query->where('estado', '!=', 'renovada')),
             ])
             ->recordActions([
                 ViewAction::make()
