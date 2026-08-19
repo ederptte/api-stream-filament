@@ -10,6 +10,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -64,6 +65,7 @@ class ComprasTable
                         'renovada' => 'info',
                         default => 'gray',
                     }),
+
                 TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
@@ -79,10 +81,13 @@ class ComprasTable
             ])
             ->filters([
                 TrashedFilter::make(),
+                Filter::make('ocultar_renovadas')
+                    ->label('Ocultar renovadas')
+                    ->default()
+                    ->query(fn (Builder $query) => $query->where('estado_actual', '!=', 'renovada')),
             ])
             ->recordActions([
-                ViewAction::make()
-                ->label('Ver'),
+                ViewAction::make()->label('Ver'),
                 EditAction::make(),
             ])
             ->toolbarActions([
