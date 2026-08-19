@@ -64,7 +64,7 @@ class ViewVentas extends ViewRecord
                     $perfil = $venta->perfilCuenta;
                     $cuenta = $perfil?->compra?->cuenta;
 
-                    $mensaje = "Hola {$venta->cliente->nombre}, tu pantalla de {$cuenta?->plataforma} vence $venta->fecha_vencimiento?->format('d/m/Y')";
+                    $mensaje = "Hola {$venta->cliente->nombre}, tu pantalla de {$cuenta?->plataforma} vence {$venta->fecha_vencimiento?->format('d/m/Y')}";
                     $whatsapp = $venta->cliente->whatsapp;
 
                     return "https://wa.me/57{$whatsapp}?text=" . urlencode($mensaje);
