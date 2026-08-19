@@ -84,9 +84,10 @@ class ComprasTable
                 Filter::make('ocultar_renovadas')
                     ->label('Ocultar renovadas')
                     ->default()
-                    ->query(fn (Builder $query) => $query->whereHas('perfilCuentas', function (Builder $q) {
-                        $q->where('estado_actual', '!=', 'renovada');
+                    ->query(fn (Builder $query) => $query->whereHas('cuenta', function (Builder $q) {
+                        $q->where('estado', '!=', 'renovada'); // Cambiado a 'cuenta' y columna 'estado'
                     })),
+
             ])
             ->recordActions([
                 ViewAction::make()->label('Ver'),
