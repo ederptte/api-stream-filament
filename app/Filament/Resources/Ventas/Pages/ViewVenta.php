@@ -51,7 +51,7 @@ class ViewVentas extends ViewRecord
 
                     $whatsapp = $venta->cliente->whatsapp;
 
-                    return "https://wa.me/57{$whatsapp}?text=" . urlencode($mensaje);
+                    return "https://wa.me{$whatsapp}?text=" . urlencode($mensaje);
                 })
                 ->openUrlInNewTab(),
             
@@ -67,7 +67,7 @@ class ViewVentas extends ViewRecord
                     $mensaje = "Hola {$venta->cliente->nombre}, tu pantalla de {$cuenta?->plataforma} vence {$venta->fecha_vencimiento?->format('d/m/Y')}";
                     $whatsapp = $venta->cliente->whatsapp;
 
-                    return "https://wa.me/57{$whatsapp}?text=" . urlencode($mensaje);
+                    return "https://wa.me{$whatsapp}?text=" . urlencode($mensaje);
                 })
                 ->openUrlInNewTab(),
 
@@ -93,7 +93,7 @@ class ViewVentas extends ViewRecord
                         ->label('Plataforma')
                         ->native(false)
                         ->required()
-                        ->live(onBlur: true)
+                        ->live(onBlur: true) // Evita consultas en tiempo real infinitas
                         ->options([
                             'netflix' => 'Netflix',
                             'prime video' => 'Prime Video',
@@ -107,7 +107,7 @@ class ViewVentas extends ViewRecord
                         ->label('Correo de la cuenta')
                         ->native(false)
                         ->required()
-                        ->live(onBlur: true)
+                        ->live(onBlur: true) // Evita consultas en tiempo real infinitas
                         ->disabled(fn (Get $get) => !$get('plataforma_nueva'))
                         ->afterStateUpdated(fn (Set $set) => $set('perfil_nuevo_id', null))
                         ->options(function (Get $get) {
@@ -115,7 +115,7 @@ class ViewVentas extends ViewRecord
                             if (!$plataforma) return [];
 
                             return Compra::query()
-                                ->with(['cuenta']) // Alivia la carga de relaciones
+                                ->with(['cuenta']) // Alivia el proceso N+1 en Render gratis
                                 ->whereHas('cuenta', fn ($q) => $q->where('plataforma', mb_strtoupper($plataforma, 'UTF-8')))
                                 ->where('estado', 'activa')
                                 ->whereHas('perfilCuentas', fn ($q) => $q->where('estado', 'disponible'))
@@ -181,53 +181,24 @@ class ViewVentas extends ViewRecord
                         ->numeric()
                         ->default(fn () => $this->record->precio_venta),
 
-                    DatePicker::make('fecha_venta')
-                        ->label('Fecha de pago')
+                    DatePicker::make('nueva_fecha_vencimiento')
+                        ->label('Nueva Fecha de Vencimiento')
                         ->required()
-                        ->default(now()),
+                        ->default(fn () => $this->record->fecha_vencimiento?->addMonth() ?? now()->addMonth()),
                 ])
                 ->action(function (array $data) {
-                    $ventaVieja = $this->record;
-
-                    $nuevaVenta = DB::transaction(function () use ($ventaVieja, $data) {
-                        $nueva = Venta::create([
-                            'cliente_id' => $ventaVieja->cliente_id,
-                            'perfil_cuenta_id' => $ventaVieja->perfil_cuenta_id,
-                            'precio_venta' => $data['precio_venta'],
-                            'fecha_venta' => $data['fecha_venta'],
-                        ]);
-
-                        $ventaVieja->update(['estado' => 'renovada']);
-
-                        return $nueva;
-                    });
+                    $this->record->update([
+                        'precio_venta' => $data['precio_venta'],
+                        'fecha_vencimiento' => $data['nueva_fecha_vencimiento'],
+                    ]);
 
                     Notification::make()
-                        ->title('Servicio renovado con éxito')
+                        ->title('Venta renovada correctamente')
                         ->success()
                         ->send();
 
-                    $this->redirect(VentaResource::getUrl('view', ['record' => $nuevaVenta->id]));
-                }),
-
-            Action::make('cancelarVenta')
-                ->label('Cancelar venta')
-                ->icon(Heroicon::OutlinedXCircle)
-                ->color('danger')
-                ->requiresConfirmation()
-                ->modalDescription('Esto cancelará la venta y liberará el perfil para poder venderlo de nuevo. El historial se conserva.')
-                ->visible(fn () => $this->record->estado === 'activa')
-                ->action(function () {
-                    $this->record->update(['estado' => 'cancelada']);
-                    $this->record->perfilCuenta?->update(['estado' => 'disponible']);
-
-                    Notification::make()
-                        ->title('Venta cancelada. El perfil quedó disponible de nuevo.')
-                        ->warning()
-                        ->send();
+                    $this->fillForm();
                 }),
         ];
     }
-
-    protected static ?string $title = 'DETALLE DE VENTA';
 }
