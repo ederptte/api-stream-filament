@@ -115,6 +115,7 @@ class ViewVentas extends ViewRecord
                             if (!$plataforma) return [];
 
                             return Compra::query()
+                                ->with(['cuenta']) // Alivia la carga de relaciones
                                 ->whereHas('cuenta', fn ($q) => $q->where('plataforma', mb_strtoupper($plataforma, 'UTF-8')))
                                 ->where('estado', 'activa')
                                 ->whereHas('perfilCuentas', fn ($q) => $q->where('estado', 'disponible'))
