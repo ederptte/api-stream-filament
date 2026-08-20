@@ -93,7 +93,7 @@ class ViewVentas extends ViewRecord
                         ->label('Plataforma')
                         ->native(false)
                         ->required()
-                        ->live()
+                        ->live(onBlur: true)
                         ->options([
                             'netflix' => 'Netflix',
                             'prime video' => 'Prime Video',
@@ -107,7 +107,7 @@ class ViewVentas extends ViewRecord
                         ->label('Correo de la cuenta')
                         ->native(false)
                         ->required()
-                        ->live()
+                        ->live(onBlur: true)
                         ->disabled(fn (Get $get) => !$get('plataforma_nueva'))
                         ->afterStateUpdated(fn (Set $set) => $set('perfil_nuevo_id', null))
                         ->options(function (Get $get) {
